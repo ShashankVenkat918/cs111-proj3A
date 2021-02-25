@@ -77,6 +77,19 @@ void print_free_block_entries()
 
 void printFreeInodeEntries()
 {
+    char *bitmap = (char *)malloc(blockSize);
+    pread(imageFD, bitmap, blockSize, block_offset(groupDesc.bg_inode_bitmap));
+    int offset = 0;
+    int index;
+    __u32 block_number = 1;
+    for (block_number = 1; block_number < blockSize; block_number++)
+    {
+        index = (block_number - 1) / 8;
+        offset = (block_number - 1) % 8;
+        if ((bitmap[index] & (1 << offset)) == 0)
+            fprintf(stdout, "IFREE,%d\n", block_number);
+    }
+
 }
 
 int main(int argc, char *argv[])
@@ -101,6 +114,6 @@ int main(int argc, char *argv[])
 
     printGroupSummary();
 
-    printFreeInodeEntries();
     print_free_block_entries();
+    printFreeInodeEntries();
 }
