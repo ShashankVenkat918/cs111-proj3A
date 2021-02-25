@@ -16,6 +16,11 @@ struct ext2_group_desc groupDesc;
 __u32 inodeSize;
 __u32 blockSize;
 
+int block_offset(int block)
+{
+    return block * blockSize;
+}
+
 void readAndPrintSB()
 {
     int ret = pread(imageFD, &supBlock, sizeof(supBlock), supBlockOffset);
@@ -56,7 +61,7 @@ void printGroupSummary()
 void print_free_block_entries()
 {
     char *bitmap = (char *)malloc(blockSize);
-    pread(imageFD, bitmap, blockSize, 1024);
+    pread(imageFD, bitmap, blockSize, block_offset(groupDesc.bg_block_bitmap));
     int offset = 0;
     int index;
     __u32 block_number = 1;
@@ -70,12 +75,9 @@ void print_free_block_entries()
     //some for loop
 }
 
-void printFreeInodeEntries(){
-
-
+void printFreeInodeEntries()
+{
 }
-
-
 
 int main(int argc, char *argv[])
 {
