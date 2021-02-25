@@ -30,7 +30,7 @@ void readAndPrintSB()
     __u32 inodesPerGroup = supBlock.s_inodes_per_group;
     __u32 firstNRInode = supBlock.s_first_ino;
 
-    fprintf(stdout, "SUPERBLOCK,%u,%u,%u,%u,%u,%u,%u\n", blockCount, inodeCount, blockSize, inodeSize, blocksPerGroup, inodesPerGroup, firstNRInode);
+    fprintf(stdout, "SUPERBLOCK,%u,%u,%u,%u,%u,%u,%u\n", blockCount, inodeCount, blockSize, supBlock.s_inode_size, blocksPerGroup, inodesPerGroup, firstNRInode);
 }
 
 void printGroupSummary()
@@ -53,24 +53,29 @@ void printGroupSummary()
     fprintf(stdout, "GROUP,0,%u,%u,%u,%u,%u,%u,%u\n", blockCount, inodeCount, freeBlocks, freeInodes, freeBlockBitmap, freeInodeBitmap, firstInodeBlock);
 }
 
-void print_free_block_entries(__u32 freeBlockBitmap)
+void print_free_block_entries()
 {
     char *bitmap = (char *)malloc(blockSize);
     pread(imageFD, bitmap, blockSize, 1024);
     int offset = 0;
     int index;
-    int block_number = 1;
+    __u32 block_number = 1;
     for (block_number = 1; block_number < blockSize; block_number++)
     {
         index = (block_number - 1) / 8;
         offset = (block_number - 1) % 8;
-        if (bitmap[index] & (1 << offset) == 1)
+        if ((bitmap[index] & (1 << offset)) == 0)
             fprintf(stdout, "BFREE,%d\n", block_number);
     }
     //some for loop
 }
 
-void print_directry_inodes
+void printFreeInodeEntries(){
+
+
+}
+
+
 
 int main(int argc, char *argv[])
 {
@@ -94,5 +99,6 @@ int main(int argc, char *argv[])
 
     printGroupSummary();
 
-    print_free_block_entries(groupDesc.bg_block_bitmap);
+    printFreeInodeEntries();
+    print_free_block_entries();
 }
