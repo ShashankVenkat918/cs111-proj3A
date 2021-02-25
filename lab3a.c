@@ -10,7 +10,9 @@ int imageFD = -1;
 struct ext2_super_block supBlock;
 const int supBlockOffset = 1024;
 
-__u16 inodeSize;
+struct ext2_group_desc groupDesc;
+
+__u32 inodeSize;
 __u32 blockSize;
 
 void readAndPrintSB(){
@@ -29,6 +31,21 @@ void readAndPrintSB(){
 }
 
 void printGroupSummary(){
+    int ret = pread(imageFD, &groupDesc, sizeof(groupDesc), supBlockOffset+sizeof(supBlock));
+    if(ret < 0){
+        fprintf(stderr, "Error in reading from image fd to group descriptor.\n");
+        exit(1);
+    }
+
+    __u32 blockCount = supBlock.s_blocks_count;
+    __u32 inodeCount = supBlock.s_inodes_count;
+    __u32 freeBlocks = groupDesc.bg_free_blocks_count;
+    __u32 freeInodes = groupDesc.bg_free_inodes_count;
+    __u32 freeBlockBitmap = groupDesc.bg_block_bitmap;
+    __u32 freeInodeBitmap = groupDesc.bg_inode_bitmap;
+    __u32 firstInodeBlock = groupDesc.bg_inode_table;
+
+    fprintf(stdout, "GROUP,0,%u,%u,%u,%u,%u,%u,%u\n", blockCount, inodeCount, freeBlocks, freeInodes, freeBlockBitmap, freeInodeBitmap, firstInodeBlock);
     
 }
 
