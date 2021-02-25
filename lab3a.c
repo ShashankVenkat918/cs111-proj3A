@@ -15,9 +15,11 @@ struct ext2_group_desc groupDesc;
 __u32 inodeSize;
 __u32 blockSize;
 
-void readAndPrintSB(){
+void readAndPrintSB()
+{
     int ret = pread(imageFD, &supBlock, sizeof(supBlock), supBlockOffset);
-    if(ret < 0){
+    if (ret < 0)
+    {
         fprintf(stderr, "Error when reading from .img\n");
         exit(1);
     }
@@ -30,9 +32,11 @@ void readAndPrintSB(){
     fprintf(stdout, "SUPERBLOCK,%u,%u,%u,%u,%u,%u,%u\n", blockCount, inodeCount, blockSize, inodeSize, blocksPerGroup, inodesPerGroup, firstNRInode);
 }
 
-void printGroupSummary(){
-    int ret = pread(imageFD, &groupDesc, sizeof(groupDesc), supBlockOffset+sizeof(supBlock));
-    if(ret < 0){
+void printGroupSummary()
+{
+    int ret = pread(imageFD, &groupDesc, sizeof(groupDesc), supBlockOffset + sizeof(supBlock));
+    if (ret < 0)
+    {
         fprintf(stderr, "Error in reading from image fd to group descriptor.\n");
         exit(1);
     }
@@ -46,25 +50,36 @@ void printGroupSummary(){
     __u32 firstInodeBlock = groupDesc.bg_inode_table;
 
     fprintf(stdout, "GROUP,0,%u,%u,%u,%u,%u,%u,%u\n", blockCount, inodeCount, freeBlocks, freeInodes, freeBlockBitmap, freeInodeBitmap, firstInodeBlock);
-    
 }
 
-void print_free_block_entries() {
-    __u32 free_block_number;
-
+void print_free_block_entries(__u32 freeBlockBitmap)
+{
+    char *bitmap = (char *)malloc(blockSize);
+    pread(imageFD, bitmap, blockSize, 1024);
+    int offset = 0;
+    int index;
+    int block_number = 1;
+    for (block_number = 1; block_number < blockSize; block_number++)
+    {
+        index = (block_number - 1) / 8;
+        offset = (block_number - 1) % 8;
+        if (bitmap[index] & (1 << offset) == 1)
+            fprintf(stdout, "BFREE,%d\n", block_number);
+    }
     //some for loop
-    fprintf(stdout, "BFREE,%u\n", free_block_number);
-
 }
 
-int main(int argc, char* argv[]){
-    if(argc != 2){
+int main(int argc, char *argv[])
+{
+    if (argc != 2)
+    {
         fprintf(stderr, "Error in given arguments.\n");
         exit(1);
     }
 
     imageFD = open(argv[1], O_RDONLY);
-    if(imageFD < 0){
+    if (imageFD < 0)
+    {
         fprintf(stderr, "Error when opening file.\n");
         exit(1);
     }
@@ -76,6 +91,5 @@ int main(int argc, char* argv[]){
 
     printGroupSummary();
 
-    print_free_block_entries();
-
+    print_free_block_entries(groupDesc.bg_block_bitmap);
 }
