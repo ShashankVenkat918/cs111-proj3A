@@ -32,6 +32,10 @@ void printGroupSummary(){
     
 }
 
+void print_free_block_entries() {
+
+}
+
 int main(int argc, char* argv[]){
     if(argc != 2){
         fprintf(stderr, "Error in given arguments.\n");
@@ -51,6 +55,6 @@ int main(int argc, char* argv[]){
 
     printGroupSummary();
 
-    
+    print_free_block_entries();
 
 }
