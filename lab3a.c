@@ -28,6 +28,10 @@ void readAndPrintSB(){
     fprintf(stdout, "SUPERBLOCK,%u,%u,%u,%u,%u,%u,%u\n", blockCount, inodeCount, blockSize, inodeSize, blocksPerGroup, inodesPerGroup, firstNRInode);
 }
 
+void printGroupSummary(){
+    
+}
+
 int main(int argc, char* argv[]){
     if(argc != 2){
         fprintf(stderr, "Error in given arguments.\n");
@@ -44,6 +48,9 @@ int main(int argc, char* argv[]){
     blockSize = EXT2_MIN_BLOCK_SIZE << supBlock.s_log_block_size;
 
     readAndPrintSB();
+
+    printGroupSummary();
+
     
 
 }
