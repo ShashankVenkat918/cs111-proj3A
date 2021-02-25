@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "ext2_fs.h"
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
+
+#include "ext2_fs.h"
 
 int imageFD = -1;
 
@@ -68,6 +69,8 @@ void print_free_block_entries(__u32 freeBlockBitmap)
     }
     //some for loop
 }
+
+void print_directry_inodes
 
 int main(int argc, char *argv[])
 {
