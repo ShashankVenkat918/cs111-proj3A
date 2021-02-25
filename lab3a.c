@@ -33,6 +33,10 @@ void printGroupSummary(){
 }
 
 void print_free_block_entries() {
+    __u32 free_block_number;
+
+    //some for loop
+    fprintf(stdout, "BFREE,%u\n", free_block_number);
 
 }
 
