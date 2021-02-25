@@ -32,6 +32,14 @@ void printGroupSummary(){
     
 }
 
+void print_free_block_entries() {
+    __u32 free_block_number;
+
+    //some for loop
+    fprintf(stdout, "BFREE,%u\n", free_block_number);
+
+}
+
 int main(int argc, char* argv[]){
     if(argc != 2){
         fprintf(stderr, "Error in given arguments.\n");
@@ -51,6 +59,6 @@ int main(int argc, char* argv[]){
 
     printGroupSummary();
 
-    
+    print_free_block_entries();
 
 }
