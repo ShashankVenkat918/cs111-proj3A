@@ -183,6 +183,10 @@ void print_inode_summary() {
     fprintf(stdout, "INODE,%d,%s,%o,%d,%d,%d,8-12", inode_number, file_type, mode, owner, group, link_count)
 }
 
+void print_directory_entires(struct ext_inode current_inode) {
+    
+}
+
 int main(int argc, char *argv[])
 {
     if (argc != 2)
