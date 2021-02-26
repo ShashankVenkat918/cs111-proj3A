@@ -66,7 +66,8 @@ void print_free_block_entries()
 {
     char *bitmap = (char *)malloc(blockSize);
     int ret = pread(imageFD, bitmap, blockSize, block_offset(groupDesc.bg_block_bitmap));
-    if(ret < 0){
+    if (ret < 0)
+    {
         fprintf(stderr, "Error in reading into free block bitmap.\n");
         exit(1);
     }
@@ -83,20 +84,22 @@ void print_free_block_entries()
     //some for loop
 }
 
-char checkFileType(struct ext2_inode inode){
-    if((inode.i_mode & 0xF000) == 0xA000)
+char checkFileType(struct ext2_inode inode)
+{
+    if ((inode.i_mode & 0xF000) == 0xA000)
         return 'l';
-    else if((inode.i_mode & 0xF000) == 0x4000) 
+    else if ((inode.i_mode & 0xF000) == 0x4000)
         return 'd';
-    else if((inode.i_mode & 0xF000) == 0x8000)
+    else if ((inode.i_mode & 0xF000) == 0x8000)
         return 'f';
     else
         return '?';
-    
+
 } //checked the values according to the documentation given in spec
 
-char* timeFormat(__u32 inodeTime){
-    char* formattedTime = malloc(sizeof(char) * 32);
+char *timeFormat(__u32 inodeTime)
+{
+    char *formattedTime = malloc(sizeof(char) * 32);
 
     time_t rawTime = inodeTime;
     struct tm *info = gmtime(&rawTime);
@@ -107,47 +110,79 @@ char* timeFormat(__u32 inodeTime){
     return formattedTime;
 }
 
-void printInodeTable(){
+void print_directory_entires(struct ext2_inode parent_inode, int block)
+{
+
+    struct ext2_dir_entry *directory_entry;
+    int i;
+    for (i = 0; i < 12; i++)
+    {
+        if (parent_inode.i_block[i] != 0)
+        {
+            //readin
+            // __u32 directory_starting_location = block_offset();
+            __u32 logical_byte_offset = 0;
+
+            while (blockSize > logical_byte_offset)
+            {
+
+                if (logical_byte_offset == blockSize)
+                    fprintf(stdout, "why\n");
+                pread(imageFD, directory_entry, sizeof(directory_entry), (parent_inode.i_block[i] * blockSize + logical_byte_offset));
+                if (directory_entry->inode != 0)
+                {
+                    fprintf(stdout, "DIRENT,%d,%d,%d,%d,%d,'%s'\n", block, logical_byte_offset, directory_entry->inode, directory_entry->rec_len, directory_entry->name_len, directory_entry->name);
+                }
+                logical_byte_offset += directory_entry->rec_len;
+               // fprintf(stdout, "logical_byte_offset: %d\n", logical_byte_offset);
+            }
+        }
+    }
+}
+
+void printInodeTable()
+{
     /* Read in the inode table, then iterate through and print the inode summaries*/
 
     __u32 inodeLoc = groupDesc.bg_inode_table;
     __u32 inodeTableSize = sizeof(struct ext2_inode) * supBlock.s_inodes_per_group;
 
     //create the inode table by making a dynamic array of ext2_inode pointers
-    struct ext2_inode* inodeTable = malloc(inodeTableSize);
+    struct ext2_inode *inodeTable = malloc(inodeTableSize);
 
     int ret = pread(imageFD, inodeTable, inodeTableSize, block_offset(inodeLoc));
-    if(ret < 0){
+    if (ret < 0)
+    {
         fprintf(stderr, "Error in reading into inode table.\n");
         exit(1);
     }
-
+    char fileType;
+    int inodeNum;
     __u32 i = 0;
-    for(; i < supBlock.s_inodes_per_group; i++){
+    for (; i < supBlock.s_inodes_per_group; i++)
+    {
         struct ext2_inode inode = inodeTable[i];
-        if(inode.i_mode == 0 || inode.i_links_count == 0) 
+        if (inode.i_mode == 0 || inode.i_links_count == 0)
             continue;
-        else{
-            int inodeNum = i + 1;
-            char fileType = checkFileType(inode);
+        else
+        {
+            inodeNum = i + 1;
+            fileType = checkFileType(inode);
 
-            char* cTime = timeFormat(inode.i_ctime);
-            char* mTime = timeFormat(inode.i_mtime);
-            char* aTime = timeFormat(inode.i_atime);
+            char *cTime = timeFormat(inode.i_ctime);
+            char *mTime = timeFormat(inode.i_mtime);
+            char *aTime = timeFormat(inode.i_atime);
             __u32 mode = inode.i_mode & 0xFFF;
 
-            
             fprintf(stdout, "INODE,%d,%c,%o,%u,%u,%u,%s,%s,%s,%u,%u\n", inodeNum, fileType, mode, inode.i_uid, inode.i_gid, inode.i_links_count,
-            cTime, mTime, aTime, inode.i_size, inode.i_blocks);
+                    cTime, mTime, aTime, inode.i_size, inode.i_blocks);
         }
-
-
+        if (fileType == 'd')
+        {
+            //fprintf(stdout, "hello");
+            print_directory_entires(inode, inodeNum);
+        }
     }
-
-
-    
-
-    
 }
 
 void printFreeInodeEntries()
@@ -155,7 +190,8 @@ void printFreeInodeEntries()
     char *bitmap = (char *)malloc(blockSize);
     pread(imageFD, bitmap, blockSize, block_offset(groupDesc.bg_inode_bitmap));
     int ret = pread(imageFD, bitmap, blockSize, block_offset(groupDesc.bg_inode_bitmap));
-    if(ret < 0){
+    if (ret < 0)
+    {
         fprintf(stderr, "Error in reading into free inode bitmap.\n");
         exit(1);
     }
@@ -169,22 +205,6 @@ void printFreeInodeEntries()
         if ((bitmap[index] & (1 << offset)) == 0)
             fprintf(stdout, "IFREE,%d\n", block_number);
     }
-
-}
-
-void print_inode_summary() {
-
-    int inode_number;
-    char file_type;
-    octal mode;
-    int owner;
-    int group;
-    int link_count;
-    fprintf(stdout, "INODE,%d,%s,%o,%d,%d,%d,8-12", inode_number, file_type, mode, owner, group, link_count)
-}
-
-void print_directory_entires(struct ext_inode current_inode) {
-    
 }
 
 int main(int argc, char *argv[])
@@ -210,7 +230,10 @@ int main(int argc, char *argv[])
     printGroupSummary();
 
     print_free_block_entries();
+
     printFreeInodeEntries();
 
     printInodeTable();
+
+    return 0;
 }
