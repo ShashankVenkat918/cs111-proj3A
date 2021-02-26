@@ -15,6 +15,8 @@ const int supBlockOffset = 1024;
 
 struct ext2_group_desc groupDesc;
 
+struct ext2_inode inode_struct;
+
 __u32 inodeSize;
 __u32 blockSize;
 
@@ -168,6 +170,17 @@ void printFreeInodeEntries()
             fprintf(stdout, "IFREE,%d\n", block_number);
     }
 
+}
+
+void print_inode_summary() {
+
+    int inode_number;
+    char file_type;
+    octal mode;
+    int owner;
+    int group;
+    int link_count;
+    fprintf(stdout, "INODE,%d,%s,%o,%d,%d,%d,8-12", inode_number, file_type, mode, owner, group, link_count)
 }
 
 int main(int argc, char *argv[])
