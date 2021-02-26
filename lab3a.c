@@ -110,33 +110,24 @@ char *timeFormat(__u32 inodeTime)
     return formattedTime;
 }
 
-void print_directory_entires(struct ext2_inode parent_inode, int block)
+void print_directory_entires(int inode_value, int block)
 {
 
     struct ext2_dir_entry *directory_entry;
-    int i;
-    for (i = 0; i < 12; i++)
+
+    //readin
+    // __u32 directory_starting_location = block_offset();
+    __u32 logical_byte_offset = 0;
+
+    while (1024 > logical_byte_offset)
     {
-        if (parent_inode.i_block[i] != 0)
+        pread(imageFD, directory_entry, sizeof(directory_entry), (inode_value * blockSize + logical_byte_offset));
+        if (directory_entry->inode != 0)
         {
-            //readin
-            // __u32 directory_starting_location = block_offset();
-            __u32 logical_byte_offset = 0;
-
-            while (blockSize > logical_byte_offset)
-            {
-
-                if (logical_byte_offset == blockSize)
-                    fprintf(stdout, "why\n");
-                pread(imageFD, directory_entry, sizeof(directory_entry), (parent_inode.i_block[i] * blockSize + logical_byte_offset));
-                if (directory_entry->inode != 0)
-                {
-                    fprintf(stdout, "DIRENT,%d,%d,%d,%d,%d,'%s'\n", block, logical_byte_offset, directory_entry->inode, directory_entry->rec_len, directory_entry->name_len, directory_entry->name);
-                }
-                logical_byte_offset += directory_entry->rec_len;
-               // fprintf(stdout, "logical_byte_offset: %d\n", logical_byte_offset);
-            }
+            fprintf(stdout, "DIRENT,%d,%d,%d,%d,%d,'%s'\n", block, logical_byte_offset, directory_entry->inode, directory_entry->rec_len, directory_entry->name_len, directory_entry->name);
         }
+        logical_byte_offset += directory_entry->rec_len;
+        // fprintf(stdout, "logical_byte_offset: %d\n", logical_byte_offset);
     }
 }
 
@@ -177,10 +168,17 @@ void printInodeTable()
             fprintf(stdout, "INODE,%d,%c,%o,%u,%u,%u,%s,%s,%s,%u,%u\n", inodeNum, fileType, mode, inode.i_uid, inode.i_gid, inode.i_links_count,
                     cTime, mTime, aTime, inode.i_size, inode.i_blocks);
         }
+        int j;
         if (fileType == 'd')
         {
-            //fprintf(stdout, "hello");
-            print_directory_entires(inode, inodeNum);
+            for (j = 0; j < 12; j++)
+            {
+                if (inode.i_block[j] != 0)
+                {
+                    //fprintf(stdout, "hello");
+                    print_directory_entires(inode.i_block[j], inodeNum);
+                }
+            }
         }
     }
 }
