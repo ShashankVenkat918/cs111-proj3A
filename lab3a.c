@@ -69,6 +69,10 @@ void print_free_block_entries(__u32 freeBlockBitmap)
     //some for loop
 }
 
+void print_directory_entires(struct ext_inode current_inode, ) {
+    
+}
+
 int main(int argc, char *argv[])
 {
     if (argc != 2)
