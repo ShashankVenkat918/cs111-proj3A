@@ -113,7 +113,7 @@ char *timeFormat(__u32 inodeTime)
 void print_directory_entires(int inode_value, int block)
 {
 
-    struct ext2_dir_entry *directory_entry;
+    struct ext2_dir_entry directory_entry;
 
     //readin
     // __u32 directory_starting_location = block_offset();
@@ -121,14 +121,20 @@ void print_directory_entires(int inode_value, int block)
 
     while (1024 > logical_byte_offset)
     {
-        pread(imageFD, directory_entry, sizeof(directory_entry), (inode_value * blockSize + logical_byte_offset));
-        if (directory_entry->inode != 0)
+        pread(imageFD, &directory_entry, sizeof(directory_entry), (inode_value * blockSize + logical_byte_offset));
+        if (directory_entry.inode != 0)
         {
-            fprintf(stdout, "DIRENT,%d,%d,%d,%d,%d,'%s'\n", block, logical_byte_offset, directory_entry->inode, directory_entry->rec_len, directory_entry->name_len, directory_entry->name);
+            fprintf(stdout, "DIRENT,%d,%d,%d,%d,%d,'%s'\n", block, logical_byte_offset, directory_entry.inode, directory_entry.rec_len, directory_entry.name_len, directory_entry.name);
         }
-        logical_byte_offset += directory_entry->rec_len;
+        logical_byte_offset += directory_entry.rec_len;
         // fprintf(stdout, "logical_byte_offset: %d\n", logical_byte_offset);
     }
+}
+
+void print_indirect_entries(int inode_value, int block)
+{
+
+    ; //fprintf(stdout, "INDIRECT,%d,%d,%d,%d,%d,%d\n", block, 1, logical_block_offset, block_number, )
 }
 
 void printInodeTable()
@@ -180,6 +186,15 @@ void printInodeTable()
                 }
             }
         }
+        if (inode.i_block[12] != 0)
+            print_indirect_entries(inode.i_block[12], inodeNum);
+        ; //indirect call or action
+
+        if (inode.i_block[13] != 0)
+            ; //indirect call or action
+
+        if (inode.i_block[14] != 0)
+            ; //indirect call or action
     }
 }
 
