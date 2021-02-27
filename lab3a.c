@@ -131,11 +131,22 @@ void print_directory_entires(int inode_value, int block)
     }
 }
 
-void print_indirect_entries(int inode_value, int block)
+void print_indirect_entries(int inodeBlock, int inodeNum, int level, int begOffset)
 {
+    if(level == 0) return;
 
-    ; //fprintf(stdout, "INDIRECT,%d,%d,%d,%d,%d,%d\n", block, 1, logical_block_offset, block_number, )
+    __u32 currBlock;
+    for(__u32 i = 0; i < blockSize / 4; i++){
+        pread(imageFD, &currBlock, 4, block_offset(inodeBlock) + i*4);
+        if(currBlock != 0){
+            begOffset+=i;
+            fprintf(stdout, "INDIRECT,%d,%d,%d,%d,%u\n", inodeNum, level, begOffset, inodeBlock, currBlock);
+            print_indirect_entries(inodeBlock, inodeNum, level-1, begOffset);
+        }
+    }
+     //fprintf(stdout, "INDIRECT,%d,%d,%d,%d,%d,%d\n", block, 1, logical_block_offset, block_number, )
 }
+
 
 void printInodeTable()
 {
@@ -186,15 +197,18 @@ void printInodeTable()
                 }
             }
         }
+
+        //from the nongnu ext2 documentation, the first indirect block is from 13-258, the second indirect block is from 268-(65536+268), and the third indirect block is from 65536+268 onwards
         if (inode.i_block[12] != 0)
-            print_indirect_entries(inode.i_block[12], inodeNum);
-        ; //indirect call or action
+            print_indirect_entries(inode.i_block[12], inodeNum, 1, 12);
+         //indirect call or action
 
         if (inode.i_block[13] != 0)
-            ; //indirect call or action
+            print_indirect_entries(inode.i_block[13], inodeNum, 2, 268); //indirect call or action
 
         if (inode.i_block[14] != 0)
-            ; //indirect call or action
+            print_indirect_entries(inode.i_block[13], inodeNum, 3, 65804); //indirect call or action
+            
     }
 }
 
