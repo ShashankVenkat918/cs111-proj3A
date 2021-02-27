@@ -133,15 +133,19 @@ void print_directory_entires(int inode_value, int block)
 
 void print_indirect_entries(int inodeBlock, int inodeNum, int level, int begOffset)
 {
-    if(level == 0) return;
+    if(level == 0 || inodeBlock == 0) return;
 
-    __u32 currBlock;
+    
     for(__u32 i = 0; i < blockSize / 4; i++){
+        //fprintf(stderr, "%d\n", i);
+        __u32 currBlock;
         pread(imageFD, &currBlock, 4, block_offset(inodeBlock) + i*4);
         if(currBlock != 0){
+            //fprintf(stderr, "Offset: %d I:%u\t", begOffset, i);
             begOffset+=i;
-            fprintf(stdout, "INDIRECT,%d,%d,%d,%d,%u\n", inodeNum, level, begOffset, inodeBlock, currBlock);
-            print_indirect_entries(inodeBlock, inodeNum, level-1, begOffset);
+            //fprintf(stderr, "%d\n", begOffset);
+            fprintf(stdout, "INDIRECT,%d,%d,%d,%d,%d\n", inodeNum, level, begOffset, inodeBlock, currBlock);
+            print_indirect_entries(currBlock, inodeNum, level-1, begOffset);
         }
     }
      //fprintf(stdout, "INDIRECT,%d,%d,%d,%d,%d,%d\n", block, 1, logical_block_offset, block_number, )
@@ -207,7 +211,7 @@ void printInodeTable()
             print_indirect_entries(inode.i_block[13], inodeNum, 2, 268); //indirect call or action
 
         if (inode.i_block[14] != 0)
-            print_indirect_entries(inode.i_block[13], inodeNum, 3, 65804); //indirect call or action
+            print_indirect_entries(inode.i_block[14], inodeNum, 3, 65804); //indirect call or action
             
     }
 }
