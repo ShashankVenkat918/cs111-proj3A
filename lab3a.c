@@ -133,24 +133,25 @@ void print_directory_entires(int inode_value, int block)
 
 void print_indirect_entries(int inodeBlock, int inodeNum, int level, int begOffset)
 {
-    if(level == 0 || inodeBlock == 0) return;
+    if (level == 0 || inodeBlock == 0)
+        return;
 
-    
-    for(__u32 i = 0; i < blockSize / 4; i++){
+    for (__u32 i = 0; i < blockSize / 4; i++)
+    {
         //fprintf(stderr, "%d\n", i);
         __u32 currBlock;
-        pread(imageFD, &currBlock, 4, block_offset(inodeBlock) + i*4);
-        if(currBlock != 0){
+        pread(imageFD, &currBlock, 4, block_offset(inodeBlock) + i * 4);
+        if (currBlock != 0)
+        {
             //fprintf(stderr, "Offset: %d I:%u\t", begOffset, i);
-            begOffset+=i;
+            begOffset += i;
             //fprintf(stderr, "%d\n", begOffset);
             fprintf(stdout, "INDIRECT,%d,%d,%d,%d,%d\n", inodeNum, level, begOffset, inodeBlock, currBlock);
-            print_indirect_entries(currBlock, inodeNum, level-1, begOffset);
+            print_indirect_entries(currBlock, inodeNum, level - 1, begOffset);
         }
     }
-     //fprintf(stdout, "INDIRECT,%d,%d,%d,%d,%d,%d\n", block, 1, logical_block_offset, block_number, )
+    //fprintf(stdout, "INDIRECT,%d,%d,%d,%d,%d,%d\n", block, 1, logical_block_offset, block_number, )
 }
-
 
 void printInodeTable()
 {
@@ -186,9 +187,15 @@ void printInodeTable()
             char *aTime = timeFormat(inode.i_atime);
             __u32 mode = inode.i_mode & 0xFFF;
 
-            fprintf(stdout, "INODE,%d,%c,%o,%u,%u,%u,%s,%s,%s,%u,%u\n", inodeNum, fileType, mode, inode.i_uid, inode.i_gid, inode.i_links_count,
+            fprintf(stdout, "INODE,%d,%c,%o,%u,%u,%u,%s,%s,%s,%u,%u", inodeNum, fileType, mode, inode.i_uid, inode.i_gid, inode.i_links_count,
                     cTime, mTime, aTime, inode.i_size, inode.i_blocks);
         }
+        int k;
+        for (k = 0; k < 15; k++)
+        {
+            fprintf(stdout, ",%d", inode.i_block[k]);
+        }
+        fprintf(stdout, "\n");
         int j;
         if (fileType == 'd')
         {
@@ -205,14 +212,13 @@ void printInodeTable()
         //from the nongnu ext2 documentation, the first indirect block is from 13-258, the second indirect block is from 268-(65536+268), and the third indirect block is from 65536+268 onwards
         if (inode.i_block[12] != 0)
             print_indirect_entries(inode.i_block[12], inodeNum, 1, 12);
-         //indirect call or action
+        //indirect call or action
 
         if (inode.i_block[13] != 0)
             print_indirect_entries(inode.i_block[13], inodeNum, 2, 268); //indirect call or action
 
         if (inode.i_block[14] != 0)
             print_indirect_entries(inode.i_block[14], inodeNum, 3, 65804); //indirect call or action
-            
     }
 }
 
