@@ -133,22 +133,39 @@ void print_directory_entires(int inode_value, int block)
 
 void print_indirect_entries(int inodeBlock, int inodeNum, int level, int begOffset)
 {
+    /*base case: 
+        1. First case is for if the level is already 0
+        2. Second case is for checking that the inode block 
+        */
+
     if (level == 0 || inodeBlock == 0)
         return;
 
-    for (__u32 i = 0; i < blockSize / 4; i++)
+    
+    __u32 numBlocks = blockSize / 4;
+    __u32 i = 0;
+    while(i < numBlocks)
     {
         //fprintf(stderr, "%d\n", i);
-        __u32 currBlock;
-        pread(imageFD, &currBlock, 4, block_offset(inodeBlock) + i * 4);
-        if (currBlock != 0)
+        __u32 refBlock;
+        int offset = block_offset(inodeBlock) + i * 4;
+        
+        //set the current block to the one at this offset
+        //only read in 4 bytes at a time
+        pread(imageFD, &refBlock, 4, offset);
+
+        //check the current block to see if it's taken
+        if (refBlock != 0)
         {
             //fprintf(stderr, "Offset: %d I:%u\t", begOffset, i);
+            //increment the beginning offset by whatever i is to go to the next block
             begOffset += i;
             //fprintf(stderr, "%d\n", begOffset);
-            fprintf(stdout, "INDIRECT,%d,%d,%d,%d,%d\n", inodeNum, level, begOffset, inodeBlock, currBlock);
-            print_indirect_entries(currBlock, inodeNum, level - 1, begOffset);
+            fprintf(stdout, "INDIRECT,%d,%d,%d,%d,%d\n", inodeNum, level, begOffset, inodeBlock, refBlock);
+            //do the recursive call and call with the new block and a level - 1
+            print_indirect_entries(refBlock, inodeNum, level - 1, begOffset);
         }
+        i++;
     }
     //fprintf(stdout, "INDIRECT,%d,%d,%d,%d,%d,%d\n", block, 1, logical_block_offset, block_number, )
 }
