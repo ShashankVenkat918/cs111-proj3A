@@ -2,3 +2,17 @@
 #UID: 705303381,205380862 
 #EMAIL: shashank18@g.ucla.edu,kevin.m.antony@gmail.com
 
+lab3a.c:
+    This is our C source file that includes the implementation of printing the output summary of a test file system image. It takes
+    one argument, a test image, and then prints out various characteristics including the superblock summary, i-node summary, 
+    free-block entries, free i-node entries, and group summary.
+
+Makefile:
+    This is built with merely the build, clean, and dist options which will build and compile the file, delete anything created by dist
+    and create the tarball respectively.
+
+README:
+    This contains information about the files in the tarball.
+
+ext2_fs.h:
+    This is the given header file on the spec.
