@@ -81,6 +81,7 @@ void print_free_block_entries()
         if ((bitmap[index] & (1 << offset)) == 0)
             fprintf(stdout, "BFREE,%d\n", block_number);
     }
+    free(bitmap);
     //some for loop
 }
 
@@ -115,16 +116,14 @@ void print_directory_entires(int inode_value, int block)
 
     struct ext2_dir_entry directory_entry;
 
-    //readin
-    // __u32 directory_starting_location = block_offset();
     __u32 logical_byte_offset = 0;
 
     while (1024 > logical_byte_offset)
     {
-        pread(imageFD, &directory_entry, sizeof(directory_entry), (inode_value * blockSize + logical_byte_offset));
-        if (directory_entry.inode != 0)
+        pread(imageFD, &directory_entry, sizeof(directory_entry), (inode_value * blockSize + logical_byte_offset)); //readin the entry
+        if (directory_entry.inode != 0)                                                                             // check if there was an entry
         {
-            fprintf(stdout, "DIRENT,%d,%d,%d,%d,%d,'%s'\n", block, logical_byte_offset, directory_entry.inode, directory_entry.rec_len, directory_entry.name_len, directory_entry.name);
+            fprintf(stdout, "DIRENT,%d,%u,%d,%d,%d,'%s'\n", block, logical_byte_offset, directory_entry.inode, directory_entry.rec_len, directory_entry.name_len, directory_entry.name);
         }
         logical_byte_offset += directory_entry.rec_len;
         // fprintf(stdout, "logical_byte_offset: %d\n", logical_byte_offset);
@@ -138,18 +137,17 @@ void print_indirect_entries(int inodeBlock, int inodeNum, int level, int begOffs
         2. Second case is for checking that the inode block 
         */
 
-    if (level == 0 || inodeBlock == 0)
+    if (level == 0)
         return;
 
-    
     __u32 numBlocks = blockSize / 4;
     __u32 i = 0;
-    while(i < numBlocks)
+    while (i < numBlocks)
     {
         //fprintf(stderr, "%d\n", i);
         __u32 refBlock;
         int offset = block_offset(inodeBlock) + i * 4;
-        
+
         //set the current block to the one at this offset
         //only read in 4 bytes at a time
         pread(imageFD, &refBlock, 4, offset);
@@ -237,6 +235,7 @@ void printInodeTable()
         if (inode.i_block[14] != 0)
             print_indirect_entries(inode.i_block[14], inodeNum, 3, 65804); //indirect call or action
     }
+    free(inodeTable);
 }
 
 void printFreeInodeEntries()
@@ -259,6 +258,7 @@ void printFreeInodeEntries()
         if ((bitmap[index] & (1 << offset)) == 0)
             fprintf(stdout, "IFREE,%d\n", block_number);
     }
+    free(bitmap);
 }
 
 int main(int argc, char *argv[])
